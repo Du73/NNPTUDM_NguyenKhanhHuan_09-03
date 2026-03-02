@@ -26,7 +26,8 @@ let productSchema = new mongoose.Schema({
     },
     isDeleted: {
         type: Boolean,
-        default: false    }
+        default: false
+    }
 }, {
     timestamps: true
 })
