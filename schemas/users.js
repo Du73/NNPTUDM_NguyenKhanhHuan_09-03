@@ -58,14 +58,13 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre('save', function (next) {
+userSchema.pre('save', function () {
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
 
   let genSalt = bcrypt.genSaltSync(10);
   this.password = bcrypt.hashSync(this.password, genSalt);
-  next();
 })
 
 module.exports = mongoose.model("user", userSchema);
