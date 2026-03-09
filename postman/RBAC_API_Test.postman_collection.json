@@ -1,0 +1,411 @@
+{
+  "info": {
+    "name": "RBAC API Test",
+    "_postman_id": "1c2634e3-942f-48f7-99d6-123456789abc",
+    "description": "Postman collection to test auth, role authorization, product permissions, and change password.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"123456\",\n  \"email\": \"admin1@mail.com\",\n  \"role\": \"{{adminRoleId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Register Mod",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"mod1\",\n  \"password\": \"123456\",\n  \"email\": \"mod1@mail.com\",\n  \"role\": \"{{modRoleId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user1\",\n  \"password\": \"123456\",\n  \"email\": \"user1@mail.com\",\n  \"role\": \"{{userRoleId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Login Admin (save token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) pm.environment.set('adminToken', json.token);",
+                  "if (json.userId) pm.environment.set('adminUserId', json.userId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Login Mod (save token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) pm.environment.set('modToken', json.token);",
+                  "if (json.userId) pm.environment.set('modUserId', json.userId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"mod1\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Login User (save token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) pm.environment.set('userToken', json.token);",
+                  "if (json.userId) pm.environment.set('userUserId', json.userId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user1\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles RBAC",
+      "item": [
+        {
+          "name": "GET /roles as admin (allow)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/roles"
+          }
+        },
+        {
+          "name": "GET /roles as mod (allow)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{modToken}}" }
+            ],
+            "url": "{{baseUrl}}/roles"
+          }
+        },
+        {
+          "name": "POST /roles as admin (allow)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json._id) pm.environment.set('tempRoleId', json._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"qa-temp\",\n  \"description\": \"temp role\"\n}"
+            },
+            "url": "{{baseUrl}}/roles"
+          }
+        },
+        {
+          "name": "POST /roles as mod (deny)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{modToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"qa-temp-2\",\n  \"description\": \"should fail\"\n}"
+            },
+            "url": "{{baseUrl}}/roles"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users RBAC",
+      "item": [
+        {
+          "name": "GET /users as admin (allow)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/users"
+          }
+        },
+        {
+          "name": "GET /users as mod (allow)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{modToken}}" }
+            ],
+            "url": "{{baseUrl}}/users"
+          }
+        },
+        {
+          "name": "POST /users as admin (allow)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json._id) pm.environment.set('createdUserId', json._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"postman-created\",\n  \"password\": \"123456\",\n  \"email\": \"postman-created@mail.com\",\n  \"role\": \"{{userRoleId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/users"
+          }
+        },
+        {
+          "name": "POST /users as mod (deny)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{modToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"postman-deny\",\n  \"password\": \"123456\",\n  \"email\": \"postman-deny@mail.com\",\n  \"role\": \"{{userRoleId}}\"\n}"
+            },
+            "url": "{{baseUrl}}/users"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products RBAC",
+      "item": [
+        {
+          "name": "GET /products public (allow)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/products"
+          }
+        },
+        {
+          "name": "POST /products as mod (allow)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json._id) pm.environment.set('productId', json._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{modToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Product\",\n  \"price\": 100,\n  \"description\": \"created by mod\",\n  \"category\": \"demo\"\n}"
+            },
+            "url": "{{baseUrl}}/products"
+          }
+        },
+        {
+          "name": "PUT /products/:id as admin (allow)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 150\n}"
+            },
+            "url": "{{baseUrl}}/products/{{productId}}"
+          }
+        },
+        {
+          "name": "DELETE /products/:id as mod (deny)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{modToken}}" }
+            ],
+            "url": "{{baseUrl}}/products/{{productId}}"
+          }
+        },
+        {
+          "name": "DELETE /products/:id as admin (allow)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/products/{{productId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Change Password",
+      "item": [
+        {
+          "name": "Change password success",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"123456\",\n  \"newPassword\": \"654321\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/change-password"
+          }
+        },
+        {
+          "name": "Change password wrong oldPassword",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"wrong-old\",\n  \"newPassword\": \"777777\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/change-password"
+          }
+        },
+        {
+          "name": "Change password same old/new",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"654321\",\n  \"newPassword\": \"654321\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/change-password"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "adminRoleId", "value": "" },
+    { "key": "modRoleId", "value": "" },
+    { "key": "userRoleId", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "modToken", "value": "" },
+    { "key": "userToken", "value": "" },
+    { "key": "adminUserId", "value": "" },
+    { "key": "modUserId", "value": "" },
+    { "key": "userUserId", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "createdUserId", "value": "" },
+    { "key": "tempRoleId", "value": "" }
+  ]
+}

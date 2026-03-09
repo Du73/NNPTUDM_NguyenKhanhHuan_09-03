@@ -1,19 +1,20 @@
 var express = require("express");
 var router = express.Router();
-let bcrypt = require('bcrypt')
 let { userPostValidation, validateResult } =
   require('../utils/validationHandler')
-let { checkLogin } = require('../utils/authHandler')
+let { checkLogin, checkRoleAuthorization } = require('../utils/authHandler')
 
 let userController = require("../controllers/users");
+let userModel = require("../schemas/users");
 
-
-router.get("/", checkLogin, async function (req, res, next) {
+// GET all users - Admin & Mod can read
+router.get("/", checkRoleAuthorization(['admin', 'mod']), async function (req, res, next) {
   let result = await userController.getAllUser();
   res.send(result)
 });
 
-router.get("/:id",checkLogin, async function (req, res, next) {
+// GET user by ID - Admin & Mod can read
+router.get("/:id", checkRoleAuthorization(['admin', 'mod']), async function (req, res, next) {
   try {
     let result = await userController.FindByID(req.params.id)
     if (result) {
@@ -27,7 +28,8 @@ router.get("/:id",checkLogin, async function (req, res, next) {
   }
 });
 
-router.post("/", userPostValidation, validateResult,
+// POST create user - Admin only
+router.post("/", checkRoleAuthorization(['admin']), userPostValidation, validateResult,
   async function (req, res, next) {
     try {
       let newItem = await userController.CreateAnUser(
@@ -46,7 +48,8 @@ router.post("/", userPostValidation, validateResult,
     }
   });
 
-router.put("/:id", async function (req, res, next) {
+// PUT update user - Admin only
+router.put("/:id", checkRoleAuthorization(['admin']), async function (req, res, next) {
   try {
     let id = req.params.id;
     let updatedItem = await userModel.findOne({ _id: id, isDeleted: false })
@@ -57,13 +60,15 @@ router.put("/:id", async function (req, res, next) {
     }
     await updatedItem.save();
     let populated = await userModel
-      .findById(updatedItem._id)
+      .findById(updatedItem._id).populate('role')
     res.send(populated);
   } catch (err) {
     res.status(400).send({ message: err.message });
   }
 });
-router.delete("/:id", async function (req, res, next) {
+
+// DELETE user - Admin only
+router.delete("/:id", checkRoleAuthorization(['admin']), async function (req, res, next) {
   try {
     let id = req.params.id;
     let updatedItem = await userModel.findByIdAndUpdate(

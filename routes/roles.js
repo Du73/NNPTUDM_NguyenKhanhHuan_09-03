@@ -2,15 +2,18 @@ var express = require("express");
 var router = express.Router();
 
 let roleModel = require("../schemas/roles");
+let { checkRoleAuthorization } = require('../utils/authHandler')
 
 
-router.get("/", async function (req, res, next) {
+// GET all roles - Admin & Mod can read
+router.get("/", checkRoleAuthorization(['admin', 'mod']), async function (req, res, next) {
     let roles = await roleModel.find({ isDeleted: false });
     res.send(roles);
 });
 
 
-router.get("/:id", async function (req, res, next) {
+// GET role by ID - Admin & Mod can read
+router.get("/:id", checkRoleAuthorization(['admin', 'mod']), async function (req, res, next) {
     try {
         let result = await roleModel.find({ _id: req.params.id, isDeleted: false });
         if (result.length > 0) {
@@ -25,7 +28,8 @@ router.get("/:id", async function (req, res, next) {
 });
 
 
-router.post("/", async function (req, res, next) {
+// POST create role - Admin only
+router.post("/", checkRoleAuthorization(['admin']), async function (req, res, next) {
     try {
         let newItem = new roleModel({
             name: req.body.name,
@@ -38,7 +42,8 @@ router.post("/", async function (req, res, next) {
     }
 });
 
-router.put("/:id", async function (req, res, next) {
+// PUT update role - Admin only
+router.put("/:id", checkRoleAuthorization(['admin']), async function (req, res, next) {
     try {
         let id = req.params.id;
         let updatedItem = await roleModel.findByIdAndUpdate(id, req.body, { new: true });
@@ -51,7 +56,8 @@ router.put("/:id", async function (req, res, next) {
     }
 });
 
-router.delete("/:id", async function (req, res, next) {
+// DELETE role - Admin only
+router.delete("/:id", checkRoleAuthorization(['admin']), async function (req, res, next) {
     try {
         let id = req.params.id;
         let updatedItem = await roleModel.findByIdAndUpdate(
